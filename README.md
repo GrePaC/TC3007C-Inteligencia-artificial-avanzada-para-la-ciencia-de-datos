@@ -69,3 +69,16 @@ La única evidencia de este módulo fue la creación de un chatbot de una taquer
 | :---        |    :----:   |
 | 6.NLP.zip    |Zip con los recursos del funcionamiento del chatbot para el pedido de la taquería|
 
+
+## RETOS
+
+En esta carpeta se encuentran las evidencias para los dos retos realizados durante este módulo.
+
+|Documento| Descripción | 
+| :---        |    :----:   |
+| hotel-id-kaggle-main   | Carpeta con todos los recursos utilizados y realizados para poder cumplir con el reto de identificación de hoteles|
+| TC3007C_Reporte_Equipo1.pdf | Reporte del proceso seguido para la realización del proyecto de la identificación de hoteles   |
+| hotels-id-kaggle-main.zip | Zip del repositorio donde se integraron las libretas para el reto   |
+| A01366730_1_Round1_Amount.ipynb |Libreta con el código de la primera ronda del reto de cortex |
+| A01366730_2_Round2_Probability_of_Giving.ipynb |Libreta con el código de la segunda ronda del reto de cortex, especificamente la parte de la predicción de probabilidades integradas a la cantidad predecida |
+| A01366730_3_Round2_Conditional_Amount.ipynb |Libreta con el código de la segunda ronda del reto de cortex, especificamente la parte de la predicción dela cantidad a donar|
