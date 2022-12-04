@@ -45,3 +45,27 @@ Las evidencias de este módulo son aquellas obtenidas por la realización de los
 ## DEEP LEARNING
 
 Las evidencias de este módulo representan el material de la evidencia del reto de la identificación de hoteles.
+
+|Documento| Descripción | 
+| :---        |    :----:   |
+| hotel-id-kaggle-main    | Carpeta con todos los recursos utilizados y realizados para poder cumplir con el reto de identificación de hoteles|
+|TC3007C_Reporte_Equipo1.pdf | Reporte del proceso seguido para la realización del proyecto de la identificación de hoteles   |
+| hotel-id-kaggle-main.zip | Zip del repositorio donde se integraron las libretas para el reto  |
+
+## ESTADÍSTICA AVANZADA
+
+Las evidencias presentadas son el código con el análisis correspondiente para las evidencias finales del módulo de estadística.
+
+|Documento| Descripción | 
+| :---        |    :----:   |
+| A01366730_VentaTelevisores.Rmd    | markdown con el código y análisis de la actividad de la serie de tiempo de la venta de televisores|
+|Reporte_Peces_Mercurio.Rmd  | markdown con el código y análisis de la actividad del análisis de concentración de mercurio en peces   |
+
+## NATURAL LANGUAGE PROCESSING
+
+La única evidencia de este módulo fue la creación de un chatbot de una taquería.
+
+|Documento| Descripción | 
+| :---        |    :----:   |
+| 6.NLP.zip    |Zip con los recursos del funcionamiento del chatbot para el pedido de la taquería|
+
