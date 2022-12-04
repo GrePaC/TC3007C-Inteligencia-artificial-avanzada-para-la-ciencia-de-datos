@@ -21,6 +21,7 @@ En esta carpeta se encuentran documentos de los tableros realizados durante sesi
 
 Los documentos contenidos y su descripción son:
 
+
 |Documento| Descripción | 
 | :---        |    :----:   |
 | DataWarehouse.twd     | Proyecto en tableu donde se realizó la actividad de la creación de un data warehouse|
@@ -29,3 +30,18 @@ Los documentos contenidos y su descripción son:
 | Publicar_dashboard.pdf   | Reporte completo de la creación de un tablero y su publicación en Tableau cloud    |
 
 
+## CLOUD COMPUTING
+
+Las evidencias de este módulo son aquellas obtenidas por la realización de los cursos de AWS (Cloud Foundationd y Machine Learning). 
+
+
+|Documento| Descripción | 
+| :---        |    :----:   |
+| AWS_Cloud_Foundations_Badge_Claim.jpg    | Evidencia de la solicitud del badge por haber completado el curso de cloud foundations|
+| AWS_Cloud_Foundations_Grades.pdf  | Reporte de las calificaciones de las evaluaciones de módulo del curso de cloud foundations   |
+| AWS_Machine_Learning_Badge_Claim.jpg | Evidencia de la solicitud del badge por haber completado el curso de machine learning foundations  |
+| AWS_Machine_Learning_Grades.pdf |Reporte de las calificaciones de las evaluaciones de módulo del curso de machine learning foundations  |
+
+## DEEP LEARNING
+
+Las evidencias de este módulo representan el material de la evidencia del reto de la identificación de hoteles.
