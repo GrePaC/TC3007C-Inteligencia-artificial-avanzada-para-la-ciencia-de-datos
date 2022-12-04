@@ -1,0 +1,245 @@
+---
+title: "A8_SeriesTiempo"
+author: "Grecia Pacheco Castellanos A01366730"
+date: "2022-11-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# VENTAS DE TELEVISORES
+
+## Datos
+
+Usa los datos de las ventas de televisores para familiarizarte con el análisis de tendencia de una serie de tiempo. Los datos proporcionados corresponden a las ventas realizadas en lo últimos 3 años
+
+
+```{r}
+
+ventas = c(4.8, 4.1, 6, 6.5, 5.8, 5.2, 6.8, 7.4, 6, 5.6, 7.5, 7.8, 6.3, 5.9, 8, 8.4)
+x = ts(ventas, frequency = 4, start(c(2016,1)))
+
+```
+## Dispersión, tendencia y ciclos
+
+```{r}
+t= 1:16
+plot(t,ventas,type="o",col= "purple", main = "Ventas televisores")
+```
+
+```{r}
+plot.ts(x, col = "red", main = "Gráfico de dispersión")
+
+```
+Con este gráfico de dispersión podemos ver cómo existe un comportamiento con tendencia, especialmente positiva, podemos ver que existe la fluctuación, pero la tendencia va en incrermento, por lo cual sabemos que no son estacionarios.
+Para poder interpretar y comprender mejor el comportamiento de esta serie de tiempo es necesario descomponen la serie en componentes e interpretar cada uno de ellos; esta descomposición la podemos hacer de forma aditiva o multiplicativa.
+
+**Despomposición multiplicativa**
+
+```{r}
+T1 = decompose(x,type = "m")
+plot(T1, col ="blue")
+```
+**Despomposición aditiva**
+
+```{r}
+T2 = decompose(x,type = "a")
+plot(T2, col ="blue")
+```
+Al dividir la serie de tiempo en sus 4 componentes podemos observar como el comportamiento observado lo dividimos en sus tres componentes; por lo cual los componentes de tendencia, estacionalidad e irregularidad pueden integrarse para reconstruir la información presentada en el componente de los valores observados. 
+
+Podemos ver que la tendencia tiene una pendiente positiva, tal como se había observado al ver el diagrama de dispersión. Se observa una estacionalidad debido a que en este componente se observa un comportamiento repetitivo.
+
+Al comparar los dos métodos (aditivo y multiplicativo) podemos ver el comportamiento similar; sin embargo, para realizar el análisis se trabajará con el multiplicativo.
+
+**Índices estacionales**
+
+```{r}
+print("Indices estacionales")
+T1$seasonal
+
+```
+Para poder predecir lo que van a ser las fluctuaciones a lo largo del año y considerar la estacionalidad se obtienen los índices estacionales, donde podemos ver los valores de los índices para cada trimestre del año.
+
+Con estos índices se pueden obtener las ventas desestacionalizadas como primer suavizamiento y sobre éstas realizar un modelo lineal de tendencia.
+
+## Modelo lineal de la tendencia
+
+```{r}
+ventas_desestacionalizadas = (T1$x)/(T1$seasonal)
+meses = 1:16
+plot(meses,ventas_desestacionalizadas,type="o",col= "purple", main = "Ventas")
+
+```
+Para la obtención de la regresión lineal de la tendencia es necesaria la obtención de las ventas desestacionalizadas por lo cual se dividen los valores entre los índices estacionales.
+
+Una vez que se tiene esto se puede realiazar a incorporación de un modelo lineal.
+
+```{r}
+N = lm(ventas_desestacionalizadas~meses)
+summary(N)
+plot(meses, ventas_desestacionalizadas, type = "l")
+abline(N, col = "blue")
+text(6, 7, " ventas = 5.10804  + 0.14738*trimestre")
+```
+Con este modelo podemos obtener los coeficientes que modelan la tendencia lineal que se había observado, en este caso podemos ver que es una tendencia positiva por los signos de los coeficientes.
+Así mismo podemos notar que el modelo tiene un buen ajuste con respuesto a la tendencia dado el valor del coeficiente de determinación  $R^2$
+
+## Análisis del modelo
+
+### Significancia de B1
+
+Significancia de $\beta_{1}$
+
+```{r}
+alfa= 0.05
+p=4.248e-09
+p < alfa
+```
+
+Podemos ver que el valor de $\beta_{1}$ es diferente de cero, por lo cual se podria decir que se cumple con este aspecto dentro de la evaluación del modelo. Además de que el valor de p debe de ser menor a alfa, que en este caso la tomaremos como 0.05 por lo cual podemos comprobar que sí es menor y por ende se acepta la significancia.
+
+### Variabilidad explicada por el modelo 
+
+A partir del coeficiente de determinación podemos de esplicar la proporción en que nuestra variable dependiente se explica por el valor dela variable dependiente; en este caso el valor del coeficiente es 0.92 por lo cual podemos seguir aceptando que el modelo tiene una relación lineal fuerte y por ende es adecuado.
+
+### Análisis de los residuos 
+
+```{r}
+residuos = N$residuals
+```
+*Normalidad*
+
+```{r}
+shapiro.test(residuos)
+```
+
+Para hacer la prueba de normalidad de los residuos primero se comprueba con un test Shapiro, donde se observa que el valore de p es mayor a 0.05 por lo cual se comprueba este factor.
+
+```{r}
+qqnorm(residuos)
+qqline(residuos)
+```
+
+Para corroborar gráficamente odemos ver que los residuos siguen un comportamiento de normalidad ideal con un poco de comportamiento parecido a uns distribución de colas gruesas, corroborando lo que se había concluido con el shapiro test.
+
+Este comportamiento no ideal de normalidad puede sser producto de la falata de normalización de los datos antes del análisis.
+
+**Media cero**
+
+En caso de que los residuos se distribuyan como norla sse puede aplicar una prueba de hipótesis de media cero.
+
+$H_{0}: \mu_{e}$ = 0
+
+$H_{1}: \mu_{e}$ != 0
+
+```{r}
+t.test(residuos)
+```
+
+Para poder negar $H_{0}$ es necesario que el valor p sea menor al alpha de 0.05; lo cual no se cumple en este caso ya que p = 1, por lo cual se comprueba este criterio.
+
+
+**Homocedasticidad**
+
+```{r}
+plot(N$fitted.values,residuos) 
+abline(h=0, col = "purple")
+```
+
+En este caso podemos ver que no existe un patrón en el comportamiento.
+
+## Predicción de la serie de tiempo
+
+Una vez que se corroboró que el ajuste lineal obtenido es adecuado, se pueden realizar las predicciones.
+
+**Predicciones de los primeros tres años**
+
+```{r}
+xp = data.frame(c(1:16))
+
+predictions= predict(N,xp)
+
+predictions
+```
+
+Las predicciones obtenidas se pueden comparar con los valores originales observados para determinar la precisión de las predicciones,
+
+```{r}
+comp = data.frame(ventas,predictions)
+e = predictions - ventas
+df = data.frame(comp,e)
+df
+
+```
+##    CME Y EPAM 
+
+```{r}
+
+CME=mean(e^2,na.rm=TRUE)
+cat("Cuadrado medio del error: ", CME)
+```
+
+El CME es el indicador del error cuadrático medio del estimador, donde se toman las diferencias obtenidas anteriormente, en este caso podemos ver que el valor es bajo lo que indica que se están realizando predicciones adecuadas.
+
+```{r}
+EPAM = mean(abs((ventas- predictions)/ventas)) * 100
+cat("Promedio de los errores porcentuales: ", EPAM)
+
+```
+En este caso el EPAM nos dica la exactitud de los pronósticos que se realizaron anteriormente.
+
+Los dos valores obtenidos nos sirven como referencia al momento de hacer la comparación de modelos en caso de tener otras propuestas para determinar cual es el de mejor ajuste confome estos indicadores tengan el menor valor posible.
+
+
+## Valores de las ventas y predicciones vs el tiempo
+
+
+```{r}
+plot(meses, ventas, type = "l", col= "red")
+
+
+lines(meses, predictions,type = "l", col="purple")
+
+```
+En este gráfico obtenemos el comportamiento de las predicciones de las ventas, y se puede observar que se tiene un comportamiento similar al que se observa en la gráfica inicial de los valores observados.
+
+
+## Pronóstico para el siguiente año
+
+Para poder realizar el pronóstico de los siguientes meses se utilizan los coeficientes de la regresión lineal de la tendencia obtenidos con anterioridad, a cada una de las predicciones se le multiplicará por el índice estacional correspondiente.
+
+
+```{r}
+f = function(x) {5.10804  + 0.147387*x}
+# Los ídices estacionales son: 
+a1 = T1$seasonal[1]
+a2 =T1$seasonal[2]
+a3 = T1$seasonal[3]
+a4 = T1$seasonal[4];
+
+
+pn = c(f(17)*a1,f(18)*a2,f(19)*a3,f(20)*a4)
+
+t = 1:4 
+plot(t, pn, type = "l", col= "red", main= "Predicciones año 5")
+
+ventas2= c(ventas, pn)
+t2= 1:20
+
+plot(t2, ventas2, type = "l", col= "purple")
+
+
+```
+
+En la primer gráfica observamos las predicciones del nuevo año, y al integrarla con los valores de los años anteriores podemos ver como sigue el comportamiento observado originalmente en tendencia y estacionalidad.
+
+## Conclusiones
+Podemos ver cómo el modelo con la tendencia lineal que se obtuvo se adpata de buena manera al comportamiento de las ventas en televisores, por lo cual pudimos obtener predicciones para el año 5 que tienen un comportamiento similar al obtenido de las ventas normales. Esto se puede observar en el gráfico final donde se agregan las predicciones a las ventas.
+
+Podemos notar cómo el índice estacional mayor se da en el último trimestre del año, lo cual tendría sentido debido a que en estos meses del años se dan una mayor cantidad de descuentos y prestaciones.
+
+
