@@ -1,0 +1,373 @@
+---
+title: "ReporteFinal_PecesyMercurio"
+author: "Grecia Pacheco Castellanos A01366730"
+date: "2022-11-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#REPORTE FINAL
+#LOS PECES Y EL MERCURIO
+
+
+*Librerías*
+
+```{r}
+#install.packages("mnormt")
+#install.packages("MVN")
+#install.packages('nortest')
+#install.packages("FactoMineR")
+#install.packages("factoextra")
+#install.packages("ggplot2")
+#install.packages("modeest")
+#install.packages("reshape2")
+```
+
+```{r}
+library(nortest)
+library(mnormt)
+library(MVN)
+library(dplyr)
+library(stats)
+library(ggplot2)
+library(FactoMineR)
+library(factoextra)
+library(modeest)
+library(MASS)
+library(VGAM)
+library(Hmisc)
+library(lmtest)
+library(orcutt)
+library(reshape2)
+```
+## Problemática
+
+La contaminación por mercurio de peces en el agua dulce comestibles es una amenaza directa contra nuestra
+salud. Se llevó a cabo un estudio reciente en 53 lagos de Florida con el fin de examinar los factores que influían
+en el nivel de contaminación por mercurio. Las variables que se midieron se encuentran en “mercurio.csv” y
+su descripción es la siguiente: Las variables contenidas en el set de datos y su significado es el siguiente:
+
+* $X_{1}$ : numero de identificación del registro
+* $X_{2}$ : nombre del lago
+* $X_{3}$ : alcalinidad
+* $X_{4}$ : PH
+* $X_{5}$ : calcio
+* $X_{6}$ : clorofila
+* $X_{7}$ : concentración media de mercurio
+* $X_{8}$ : número de peces estudiados
+* $X_{9}$ : mínimo en concentración de mercurio
+* $X_{10}$ : máximo en concentración de mercurio
+* $X_{11}$ : estimación de la concentración de mercurio
+* $X_{12}$ : indicador de la edad
+
+Con dichos datos se busca determinar ¿Cuáles son los principales factores que influyen en el nivel de contaminación por mercurio en los peces de los lagos de Florida?
+
+## DATOS
+
+```{r}
+data = read.csv("mercurio.csv")
+head(data)
+```
+
+Para poder realizar un análisis pertinente las variables x1 y x2 serán eliminadas, debido a que la primera corresponde únicamente a un identificador del registro y la segunda representa los nombres de los lagos.
+
+```{r}
+drop <- c("X1","X2")
+data = data[,!(names(data) %in% drop)]
+head(data)
+```
+
+De igual manera para poder tener un mejor entendimiento del fenómeno se renombrarán las variables para tener identificadores más descriptivos.
+
+```{r}
+col_names = c('alcalinidad', 'PH', 'calcio', 'clorofila', 'mercurio', 'numPeces', 'minMercurio','maxMercurio', 'estimacionMercurio', 'edadPeces')
+
+colnames(data) <- col_names
+head(data)
+```
+
+Características del set de datos
+
+```{r}
+cat("El número de variables en el set de datos es: ",length(data))
+cat("\nLa cantidad de registros es: ", length(data$alcalinidad))
+```
+```{r}
+str(data)
+```
+
+
+*Características del set de datos*
+
+```{r}
+describe(data)
+```
+```{r}
+for (i in colnames(data)){2
+    h<-hist(data[[i]], main = i, xlab = i, col = c("pink"))
+    
+    xfit <- seq(min(data[[i]]), max(data[[i]]), length = 80) 
+    yfit <- dnorm(xfit, mean = mean(data[[i]]), sd = sd(data[[i]])) 
+    yfit <- yfit * diff(h$mids[1:2]) * length(data[[i]]) 
+    
+    lines(xfit, yfit, col = "black", lwd = 2)
+}
+
+```
+
+Observando de manera rápida los gráficos del comportamiento de las variables podemos norar que aquellas que tienen una distribución más parecida a una normalidad ideal son: PH y el maxMercurio.
+
+Sin embargo, para poder comprobar estas observaciones se deben realizar pruebas de normalidad tales como Mardia y Anderson-Darling.
+
+## Análisis de normalidad
+
+### Análisis de normalidad general
+
+El análisis de normalidad se realiza sobre las variables continuas, por lo cual la variable "edadPeces" no será considerada.
+
+```{r}
+data_complete = data
+drop <- c("edadPeces")
+data = data[,!(names(data) %in% drop)]
+head(data)
+```
+
+
+**Prueba de normalidad de Mardia**
+
+```{r}
+mvn(data,subset = NULL,mvn = "mardia", covariance = FALSE,showOutliers = FALSE)
+
+```
+Con esta prueba podemos corroborar lo observado anteriormente, donde los valores p superiores a 0.05 nos darán las variables que son normales y vemos que estas son:
+
+* PH
+* maxMercurio
+
+**Prueba de normalaidad Anderson-Darling**
+
+```{r}
+normality_check = lapply(data,ad.test) 
+normality_check
+```
+Con la prueba Anderson-Darling debemos de analizar los valores p obtenidos, nuevamente podemos corroborar que aquellas que cuentan con un valor p mayor a 0.05 y cumplen con una distribución normal son las ya obtenidas con anterioridad.
+
+* PH
+* maxMercurio
+
+Como podemos notar, ambas pruebas de normalidad coincidieron en las dos variables que cuentan con este tipo de distribución.
+
+### Prueba de normalidad sobre variables seleccionadas
+
+
+Debido a que únicamente dos variables tuvieron normalidad con los análisis anteriores, utilizaremos las mismas para hacer un segundo análisis de normalidad.
+
+```{r}
+normal_variables <- c("PH","maxMercurio")
+NM= data[,(names(data) %in% normal_variables)]
+head(NM)
+```
+
+**Prueba de normalidad de Mardia**
+
+```{r}
+mvn(NM,subset = NULL,mvn = "mardia", covariance = FALSE,showOutliers = FALSE)
+
+```
+*Prueba de normalidad de Anderson-Darling*
+
+```{r}
+normality_check = lapply(NM,ad.test) 
+normality_check
+```
+
+Podemos observar como con la prueba de mardia en esta ocasión ya aprueba la normalidad debido a que ambas variables cumplen con la condición; podemos ver que como la asimetría está moderada, mientras que la curtosis nos indica que es platicúrtica.
+
+
+### Gráfica de contorno de normal multivariada
+
+```{r}
+x = seq(2, 11, 0.1)
+y = seq(-2, 3, 0.1)
+mu = unname(colMeans(NM))
+mu = c(mu[1],mu[2])
+sigma = cov(unname(NM))
+
+f <- function(x, y) dmnorm(cbind(x, y), mu, sigma)
+z = outer(x, y, f)
+
+#create surface plot
+persp(x, y, z, theta=-30, phi=25, expand=0.6, ticktype='detailed', col = "purple")
+```
+
+```{r}
+z <- outer(x, y, f)
+
+contour(x, y, z, col = "purple", levels = c(0.01,0.03,0.05,0.07,0.1))
+```
+Las gráficas nos muestran el comportamiento de normalidad multivariada (bivariada) que se realizó con las variables PH y maxMercurio, donde podemos ver las elipses de normalidad.
+
+
+### Datos atípicos
+
+```{r}
+m_dist <- mahalanobis(NM[, 1:2], colMeans(NM[, 1:2]), cov(NM[, 1:2]))
+NM$m_dist <- round(m_dist, 2)
+
+NM$outlier_maha <- "No"
+NM$outlier_maha[NM$m_dist > 5] <- "Yes"
+
+ggplot(NM, aes(x = PH, y = maxMercurio, color = outlier_maha)) +
+      geom_point(size = 5, alpha = 0.6) +
+      labs(title = "PH vs MaxMercurio",
+           subtitle = "Outliers in PH vs MaxMercurio - Mahalanobis")+
+      ylab("maxMercurio") + xlab("PH") +
+      scale_y_continuous(breaks = seq(160, 200, 5)) +
+      scale_x_continuous(breaks = seq(35, 80, 5))
+```
+```{r}
+which(NM$outlier_maha == "Yes")
+```
+
+
+Podemos obsevar la manera en la que se están distribuyendo los valores  de la normal bivariada , donde se puede notar el comportamiento de la normal bivariada, podemos identificar los outliers respecto al criterio de la distancia a considerar, y posteriormente la identificación del índice del registro que representa este outlier.
+
+## Análisis de componentes principales
+
+Para poder realizar una mejor análisis de componentes principales se deben de estandarizar y normalización de  los datos.
+
+```{r}
+set.seed(1)
+stan_data = data_complete
+stan_data = data_complete%>%mutate_all(~(scale(.) %>% as.vector))
+head(stan_data,5)
+```
+```{r}
+min_max_norm <- function(x){
+  (x-min(x))/(max(x)-min(x))
+}
+```
+
+```{r}
+data_norm <- as.data.frame(lapply(stan_data, min_max_norm))
+
+```
+```{r}
+for (i in colnames(data_norm)){2
+    h<-hist(data_norm[[i]], main = i, xlab = i, col = c("pink"))
+    
+    xfit <- seq(min(data_norm[[i]]), max(data_norm[[i]]), length = 80) 
+    yfit <- dnorm(xfit, mean = mean(data_norm[[i]]), sd = sd(data_norm[[i]])) 
+    yfit <- yfit * diff(h$mids[1:2]) * length(data_norm[[i]]) 
+    
+    lines(xfit, yfit, col = "black", lwd = 2)
+}
+```
+
+### Justificación del PCA
+
+El análisis de componentes principales es necesario y recomendado que nos permite reducir la dimesión de la matriz de datos por la selección de variables que sean de importancia para la simulación y mejorando así los datos originales.
+
+**Matriz de correlaciones**
+
+```{r}
+cormat <- round(cor(data_norm),2)
+melted_cormat <- melt(cormat)
+
+```
+
+
+```{r}
+ggplot(data = melted_cormat, aes(x=Var1, y=Var2, fill=value)) + geom_tile()
+```
+En este caso podemo observar la correlación entre la variable objetivo (mercurio) y el resto de las variables, pero es necesario el poder entender cuales son aquellos que tienen mayor influencia para hacer un ajuste más adecuado al momento de generar un modelo.
+
+### PCA 
+```{r}
+cpa = prcomp(data_norm,scale = FALSE)
+
+cat("Desviaciones estándar : ", cpa$sdev, "\n\n")
+
+print("Mediasy desviacion estándar previas a estandarización ")
+
+cpa$center
+cpa$scale
+
+print("Coeficientes de la combinación lineal normalizada de componentes")
+cpa$rotation
+
+print("Los datos sustituidos en la combinación lineal de vectores propios")
+cpa$x
+```
+
+Los coeficientes de la combinación lineal normalizada de componentes para el PCA sin escalamiento son los eigen vectores que se obtienen de la matriz de covarianza.
+
+
+#### Gráficos PCA
+
+```{r}
+cp3 = PCA(data_norm)
+fviz_pca_ind(cp3, col.ind = "blue", addEllipses = TRUE, repel = TRUE)
+
+fviz_screeplot(cp3)
+fviz_contrib(cp3, choice = c("var"), axes= 1)
+
+fviz_contrib(cp3, choice = c("var"), axes= 2)
+fviz_contrib(cp3, choice = c("var"), axes= 3)
+
+fviz_contrib(cp3, choice = c("var"), axes= 4)
+
+```
+El primer gráfico muestra una representación de los datos, donde en un sistema de coordenadas X-Y, podemos identificar la redundancia de los mismos, donde podemos ver que es bajo el nivel.
+
+La gráfica de variables que muestra el círculo de correlación, y muestra la relación entre las variables y podemos ver que las variables están negativamente correlacionadas ya que se encuentran en lados opuestos al origen.
+
+La cuarta figura nos muestra los valores propios ordenados de mayor a menor, y podemos ver que el comportamiento muestran una reducción.
+
+Por último, se muestra una gráfica dde barras de las contribuciones por variable a cada uno de los componentes.
+
+
+Podemos ver cómo los componentes se están acomodando por la cantidad de varianza original que describen, donde podemos ver que esto nos es útil para poder reducir la dimensionalidad del conjunto de datos.
+
+
+
+```{r}
+install.packages("ggbiplot")
+```
+```{r}
+library(devtools)
+
+install_github("vqv/ggbiplot")
+
+```
+
+
+```{r}
+library(ggbiplot)
+
+cpa = prcomp(data_norm,scale = FALSE)
+
+ggbiplot(cpa)
+```
+### Interpretación
+
+En este caso podemos determinar la importancia de los componentes con respecto a la cantidad de varianza que describen, donde podemos ver que los factores que más influyen son el nivel de calcio y la alcalinidad.
+La realización del PCA es de importancia para el entendimiento de un set de datos multivariado, de manera que se puede observar el comportamiento y los outliers que se tienen en el set de datos.
+
+En este caso podemos ver que los factores que más influyen son el calcio, alcalinidad y nivel mínimo de mercurio; mientras que los factores con una menor influencia son el nivel de clorofila y la cantidad de peces.
+
+Al final tenemos las gráficas de las contribuciones de cada variable a cada uno de los componentes 
+
+## Conclusión General
+
+En esta entrega pude identificar nuevas maneras de hacer un análisis de los datos presentados en un set de datos; empezando con los análisis de normalidad que me permiten identificar de manera estadística y justificada aquellas variables que no cuentan con este tipo de comportamiento, con el objetivo de la realización de una normalización durante el proceso de tratamiento de los datos.
+
+Por otro lado, el análisis de componentes principales nos sirve para poder realizar una reducción de dimensionalidad, donde de esta manera se puede hacer una selección de las características más influyecntes y de esta manera poder elegir un menor número de predictores.
+
+Este análisis es de gran utilidad debido a que la aproximación que se tomó en el módulo pasado en que se analizó este problema fue más laborioso debido a que se tenía que medir y corroborar la influencia de cada factor una vez que era implementado en un modelo lineal.
+
+De manera más rápida y eficiente pude observar como los factores que más influyen en la concentración de mercurio de 
+
